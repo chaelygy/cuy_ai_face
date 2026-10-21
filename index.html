@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CUY.AI • Royal Amethyst Neural Biometrics</title>
+    <meta name="description" content="CUY AI Facial Intelligence & Biometric Vector Analysis powered by RetinaFace & DeepFace Facenet512">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Orbitron:wght@500;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="amethyst-body">
+    <!-- Ambient Texture & Background Elements -->
+    <div class="ambient-texture-overlay"></div>
+    <div class="amethyst-radial-bloom"></div>
+    <div class="cyber-grid-overlay"></div>
+    <div class="scanline-sweep"></div>
+
+    <div class="cuy-app-container">
+        <!-- TOP HUD TELEMETRY BAR -->
+        <header class="cuy-top-nav">
+            <div class="brand-cluster">
+                <div class="brand-crystal-badge">
+                    <svg viewBox="0 0 28 28" fill="none" class="brand-icon">
+                        <path d="M14 2L26 8.5V19.5L14 26L2 19.5V8.5L14 2Z" stroke="url(#cuy-grad)" stroke-width="2" fill="rgba(157, 78, 221, 0.15)"/>
+                        <circle cx="14" cy="14" r="5" fill="#c77dff" class="pulse-core"/>
+                        <path d="M14 6V10M14 18V22M6.5 9.5L10 11.5M18 16.5L21.5 18.5" stroke="#e0aaff" stroke-width="1.5" stroke-linecap="round"/>
+                        <defs>
+                            <linearGradient id="cuy-grad" x1="2" y1="2" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#e0aaff"/>
+                                <stop offset="0.5" stop-color="#9d4edd"/>
+                                <stop offset="1" stop-color="#5a189a"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="brand-titles">
+                    <div class="brand-name">CUY<span class="brand-dot">.AI</span></div>
+                    <div class="brand-tagline">ROYAL AMETHYST NEURAL MATRIX // v5.2</div>
+                </div>
+            </div>
+
+            <!-- Telemetry Metrics Pills -->
+            <div class="telemetry-deck">
+                <div class="hud-pill">
+                    <span class="pill-k">STATUS</span>
+                    <span class="pill-v status-live" id="systemStatusText">OPERATIONAL</span>
+                </div>
+                <div class="hud-pill">
+                    <span class="pill-k">BACKEND</span>
+                    <span class="pill-v" id="detectorText">RetinaFace</span>
+                </div>
+                <div class="hud-pill">
+                    <span class="pill-k">VECTORS</span>
+                    <span class="pill-v" id="modelText">Facenet512</span>
+                </div>
+                <div class="hud-pill">
+                    <span class="pill-k">CUTOFF_D</span>
+                    <span class="pill-v" id="cutoffText">0.4200</span>
+                </div>
+                <div class="hud-pill hud-pill-ids">
+                    <span class="pill-k">DATABASE</span>
+                    <span class="pill-v text-amethyst" id="totalPersonsBadge">24 IDS</span>
+                </div>
+                <button class="server-status-pill online" id="btnServerStatus" title="Klik untuk konfirmasi URL Backend">
+                    <span class="pulse-indicator"></span>
+                    <span class="status-name" id="serverStateLabel">ONLINE [24 ID]</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- SUB NAV / MODE SWITCHER -->
+        <div class="cuy-subnav">
+            <div class="mode-switcher">
+                <button class="mode-tab active" id="tabWebcam">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                    <span>OPTICAL FEED (WEBCAM)</span>
+                </button>
+                <button class="mode-tab" id="tabUpload">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    <span>BUFFER INGEST (UPLOAD)</span>
+                </button>
+            </div>
+            <div class="subnav-meta">
+                <button class="gear-btn" id="btnOpenConfig" title="Pengaturan Endpoint API">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <span>ENDPOINT CONFIG</span>
+                </button>
+                <div class="hud-clock" id="hudClock">UTC: --:--:--</div>
+            </div>
+        </div>
+
+        <!-- MAIN DUAL-PANEL STAGE -->
+        <main class="cuy-main-grid">
+            <!-- LEFT PANEL: OPTICAL VIEWPORT -->
+            <section class="cuy-card viewport-card">
+                <div class="card-head">
+                    <div class="card-title-group">
+                        <span class="card-index">[FEED_01]</span>
+                        <h2 class="card-title">OPTICAL SENSOR ARRAY</h2>
+                    </div>
+                    <div class="viewport-actions">
+                        <button class="action-btn" id="btnFlipCamera" style="display:none;" title="Ganti Kamera">
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 16v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4"></path><path d="M4 8V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4"></path></svg>
+                            <span>FLIP</span>
+                        </button>
+                        <button class="primary-btn" id="btnToggleCamera">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            <span>ENGAGE OPTICS</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- VIEWPORT STAGE: WEBCAM -->
+                <div class="viewport-stage" id="stageWebcam">
+                    <div class="reticle-bracket top-left"></div>
+                    <div class="reticle-bracket top-right"></div>
+                    <div class="reticle-bracket bottom-left"></div>
+                    <div class="reticle-bracket bottom-right"></div>
+                    
+                    <div class="laser-scanner" id="laserScanner"></div>
+
+                    <video id="webcamVideo" autoplay playsinline muted></video>
+                    <canvas id="detectionOverlayCanvas"></canvas>
+
+                    <!-- Standby Placeholder -->
+                    <div class="viewport-standby" id="viewportStandby">
+                        <div class="standby-radar">
+                            <div class="radar-circle"></div>
+                            <div class="radar-line"></div>
+                            <div class="radar-core"></div>
+                        </div>
+                        <h3 class="standby-title">OPTICAL SENSORS STANDBY</h3>
+                        <p class="standby-sub">Engage camera system to initialize facial vectorization and real-time neural matching.</p>
+                        <button class="start-lens-btn" id="btnInitializeFeed">INITIALIZE FEED</button>
+                    </div>
+
+                    <!-- Target HUD Overlay Stats -->
+                    <div class="viewport-hud-bottom">
+                        <div class="hud-audio-bars">
+                            <span class="bar b1"></span><span class="bar b2"></span><span class="bar b3"></span><span class="bar b4"></span><span class="bar b5"></span>
+                        </div>
+                        <div class="hud-coords" id="targetCoords">TARGET_COORDS: [X: 000 | Y: 000 | Z: 512D]</div>
+                        <div class="hud-stream-res" id="streamResolution">STREAM: STANDBY</div>
+                    </div>
+                </div>
+
+                <!-- VIEWPORT STAGE: UPLOAD -->
+                <div class="viewport-stage upload-stage" id="stageUpload" style="display:none;">
+                    <div class="reticle-bracket top-left"></div>
+                    <div class="reticle-bracket top-right"></div>
+                    <div class="reticle-bracket bottom-left"></div>
+                    <div class="reticle-bracket bottom-right"></div>
+
+                    <div class="upload-dropzone" id="uploadDropzone">
+                        <input type="file" id="filePickerInput" accept="image/*" style="display:none;">
+                        <div class="upload-art">
+                            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.6">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </div>
+                        <h3 class="upload-title">DROP FACE IMAGE HERE</h3>
+                        <p class="upload-sub">Supports JPG, PNG, WEBP. Neural network will vectorize and compare with dataset.</p>
+                        <button class="primary-btn browse-btn" id="btnBrowseFile">BROWSE LOCAL STORAGE</button>
+                    </div>
+
+                    <div class="upload-preview-container" id="uploadPreviewContainer" style="display:none;">
+                        <img id="uploadPreviewImg" alt="Ingested frame">
+                        <canvas id="uploadOverlayCanvas"></canvas>
+                        <button class="action-btn upload-reset-btn" id="btnResetUpload">INGEST NEW IMAGE</button>
+                    </div>
+                </div>
+
+                <!-- BOTTOM STATS STRIP -->
+                <div class="card-foot-telemetry">
+                    <div class="foot-item">
+                        <span class="foot-label">LATENCY:</span>
+                        <span class="foot-val" id="telemetryLatency">0 ms</span>
+                    </div>
+                    <div class="foot-item">
+                        <span class="foot-label">DETECTIONS:</span>
+                        <span class="foot-val" id="telemetryFaceCount">0</span>
+                    </div>
+                    <div class="foot-item">
+                        <span class="foot-label">FPS:</span>
+                        <span class="foot-val" id="telemetryFps">0</span>
+                    </div>
+                    <div class="foot-item">
+                        <span class="foot-label">MATCH STATUS:</span>
+                        <span class="foot-val val-status" id="telemetryMatchStatus">IDLE</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT PANEL: TELEMETRY & IDENTITY MATCH -->
+            <section class="cuy-card telemetry-card">
+                <div class="card-head">
+                    <div class="card-title-group">
+                        <span class="card-index">[LOG_02]</span>
+                        <h2 class="card-title">NEURAL MATCH TELEMETRY</h2>
+                    </div>
+                    <div class="targets-badge">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 16 12 12 8"></polygon></svg>
+                        <span>TARGETS</span>
+                    </div>
+                </div>
+
+                <!-- ACTIVE TARGET CARD -->
+                <div class="target-card-display" id="targetCardDisplay">
+                    <div class="target-empty-state" id="targetEmptyState">
+                        <div class="empty-reticle">
+                            <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#9d4edd" stroke-width="1.5">
+                                <circle cx="12" cy="12" r="9"></circle>
+                                <path d="M12 3v4M12 17v4M3 12h4M17 12h4"></path>
+                            </svg>
+                        </div>
+                        <div class="empty-title">STANDBY FOR BIOMETRIC SCAN</div>
+                        <div class="empty-sub">Feed data through optical array or buffer to execute neural cosine verification.</div>
+                    </div>
+
+                    <div class="target-detected-state" id="targetDetectedState" style="display:none;">
+                        <div class="target-badge-pill" id="targetBadgePill">VERIFIED IDENTITY</div>
+                        
+                        <div class="target-name-banner">
+                            <div class="target-neon-name" id="targetPersonName">IDENTIFYING...</div>
+                            <div class="target-id-sub" id="targetIdSub">BIOMETRIC SIGNATURE IDENTIFIED</div>
+                        </div>
+
+                        <!-- Confidence Bar -->
+                        <div class="confidence-strip">
+                            <div class="conf-head">
+                                <span class="conf-label">NEURAL CONFIDENCE</span>
+                                <span class="conf-score" id="targetConfidenceScore">0.0%</span>
+                            </div>
+                            <div class="conf-track">
+                                <div class="conf-fill" id="targetConfidenceFill" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Distance & Metrics Grid -->
+                        <div class="metrics-quad-grid">
+                            <div class="quad-item">
+                                <span class="quad-k">COSINE DISTANCE</span>
+                                <span class="quad-v" id="targetDistanceVal">0.0000</span>
+                            </div>
+                            <div class="quad-item">
+                                <span class="quad-k">SIMILARITY MATCH</span>
+                                <span class="quad-v" id="targetSimilarityVal">0.0%</span>
+                            </div>
+                            <div class="quad-item">
+                                <span class="quad-k">TOP-3 KNN POOL</span>
+                                <span class="quad-v">AGGREGATED</span>
+                            </div>
+                            <div class="quad-item">
+                                <span class="quad-k">SECURITY TIER</span>
+                                <span class="quad-v text-emerald" id="targetSecurityTier">TIER-1 ACCESS</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REGISTERED IDENTITIES SECTION -->
+                <div class="registry-header">
+                    <div class="reg-title">
+                        <span class="reg-slash">//</span>
+                        <span>REGISTERED BIOMETRIC IDENTITIES</span>
+                    </div>
+                    <button class="sync-btn" id="btnSyncRegistry" title="Sinkron ulang database">SYNC</button>
+                </div>
+
+                <!-- Search Input -->
+                <div class="registry-search-box">
+                    <span class="search-prompt">SYS.FIND&gt;</span>
+                    <input type="text" id="inputRegistrySearch" placeholder="Query identity registry..." autocomplete="off">
+                </div>
+
+                <!-- Identities Grid -->
+                <div class="registry-scroll-pane" id="registryGrid">
+                    <div class="registry-loading">Memuat daftar identitas...</div>
+                </div>
+            </section>
+        </main>
+
+        <!-- FOOTER BAR -->
+        <footer class="cuy-footer">
+            <div class="foot-left">
+                <span>CUY AI FACIAL INTELLIGENCE PLATFORM</span>
+                <span class="sep">•</span>
+                <span>DATASET 24 IDENTITIES</span>
+                <span class="sep">•</span>
+                <span>DEEP AMETHYST MATRIX</span>
+            </div>
+            <div class="foot-right">
+                <span class="tech-tag">RETINAFACE</span>
+                <span class="tech-tag">FACENET-512</span>
+                <span class="tech-tag">KNN-TOP3</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- CONFIGURATION MODAL -->
+    <div class="modal-backdrop" id="configModal" style="display:none;">
+        <div class="modal-card">
+            <div class="modal-head">
+                <h3 class="modal-title">ENDPOINT CONFIGURATION</h3>
+                <button class="modal-close" id="btnCloseConfig">&times;</button>
+            </div>
+            <div class="modal-body">
+                <label class="modal-label" for="cfgApiBase">Backend API Endpoint:</label>
+                <input type="text" class="modal-input" id="cfgApiBase" placeholder="http://localhost:5000 atau https://xxx.trycloudflare.com">
+                <p class="modal-hint">Masukkan URL Cloudflare Tunnel jika ingin mengakses website ini dari HP atau jaringan luar.</p>
+                
+                <div class="modal-presets">
+                    <button class="preset-btn" id="btnPresetLocal">Use Localhost:5000</button>
+                    <button class="preset-btn" id="btnPresetTunnel">Use Cloudflare Tunnel</button>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button class="action-btn" id="btnResetConfig">Reset</button>
+                <button class="primary-btn" id="btnSaveConfig">Save & Reconnect</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
