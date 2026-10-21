@@ -5,7 +5,7 @@
  * =====================================================================
  */
 
-const CLOUD_BACKEND_URL = 'http://localhost:5000';
+const CLOUD_BACKEND_URL = 'https://heel-charms-recovered-crimes.trycloudflare.com';
 
 const isFileProtocol = window.location.protocol === 'file:';
 const isLocal = Boolean(
@@ -15,13 +15,13 @@ const isLocal = Boolean(
     isFileProtocol
 );
 
-let defaultApi = 'http://localhost:5000';
+let defaultApi = 'http://localhost:5001';
 if (!isLocal) {
     defaultApi = CLOUD_BACKEND_URL;
 } else if (!isFileProtocol && window.location.origin && window.location.origin !== 'null') {
     defaultApi = window.location.origin;
 } else {
-    defaultApi = 'http://localhost:5000';
+    defaultApi = 'http://localhost:5001';
 }
 
 const customApi = localStorage.getItem('cuy_face_backend_url');
@@ -646,7 +646,7 @@ btnCloseConfig.addEventListener('click', () => {
 });
 
 btnPresetLocal.addEventListener('click', () => {
-    cfgApiBase.value = 'http://localhost:5000';
+    cfgApiBase.value = 'http://localhost:5001';
 });
 
 btnPresetTunnel.addEventListener('click', () => {

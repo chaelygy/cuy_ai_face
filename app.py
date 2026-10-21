@@ -371,7 +371,7 @@ if __name__ == "__main__":
         print("\n[FATAL] Tidak dapat memuat data wajah face_encodings.pkl.")
         sys.exit(1)
     
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 5001))
     print(f"\n[INFO] CUY AI Backend aktif di http://0.0.0.0:{port}")
     print("[INFO] Tekan Ctrl+C untuk menghentikan server kapan saja.\n")
     

@@ -103,10 +103,10 @@ def main():
     signal.signal(signal.SIGINT, cleanup)
     signal.signal(signal.SIGTERM, cleanup)
 
-    # 1. Start Python Flask app if not already running on port 5000
+    # 1. Start Python Flask app if not already running on port 5001
     p_app = None
-    if is_port_in_use(5000):
-        print("\n[1/2] Port 5000 sudah aktif. Menggunakan server yang sedang berjalan.")
+    if is_port_in_use(5001):
+        print("\n[1/2] Port 5001 sudah aktif. Menggunakan server yang sedang berjalan.")
     else:
         print("\n[1/2] Menyalakan Backend CUY AI (app.py)...")
         p_app = subprocess.Popen(
@@ -117,26 +117,26 @@ def main():
         
         print("      Memuat neural weights & pre-warming DeepFace...")
         for i in range(40):
-            if is_port_in_use(5000):
-                print("      [OK] CUY AI Backend aktif di port 5000!")
+            if is_port_in_use(5001):
+                print("      [OK] CUY AI Backend aktif di port 5001!")
                 break
             time.sleep(1)
 
     # Otomatis buka web di browser
     try:
-        print("      [BROWSER] Membuka antarmuka CUY AI di: http://localhost:5000")
-        webbrowser.open("http://localhost:5000")
+        print("      [BROWSER] Membuka antarmuka CUY AI di: http://localhost:5001")
+        webbrowser.open("http://localhost:5001")
     except Exception:
         pass
 
     # 2. Start Cloudflare Tunnel jika tersedia
     if not os.path.exists(CLOUDFLARED_EXE):
         print(f"\n[INFO] cloudflared.exe tidak ditemukan di {CLOUDFLARED_EXE}.")
-        print("Server tetap berjalan di http://localhost:5000")
+        print("Server tetap berjalan di http://localhost:5001")
     else:
         print("\n[2/2] Membuka Cloudflare Tunnel ke internet...")
         p_tunnel = subprocess.Popen(
-            [CLOUDFLARED_EXE, "tunnel", "--url", "http://localhost:5000"],
+            [CLOUDFLARED_EXE, "tunnel", "--url", "http://localhost:5001"],
             cwd=BASE_DIR,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
