@@ -5,7 +5,7 @@
  * =====================================================================
  */
 
-const CLOUD_BACKEND_URL = 'https://referenced-cia-criterion-openings.trycloudflare.com';
+const CLOUD_BACKEND_URL = 'https://joint-captured-connecticut-logs.trycloudflare.com';
 
 const isFileProtocol = window.location.protocol === 'file:';
 const isLocal = Boolean(
