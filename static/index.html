@@ -202,14 +202,61 @@
                         <span class="card-index">[LOG_02]</span>
                         <h2 class="card-title">NEURAL MATCH TELEMETRY</h2>
                     </div>
-                    <div class="targets-badge">
+                    <div class="targets-badge" id="targetsBadgeDeck">
                         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 16 12 12 8"></polygon></svg>
-                        <span>TARGETS</span>
+                        <span id="telemetryTargetBadge">0 TARGETS</span>
                     </div>
                 </div>
 
-                <!-- ACTIVE TARGET CARD -->
+                <!-- SIMULTANEOUS MULTI-TARGET ROSTER DECK (UP TO 5+ ORANG BERSAMAAN) -->
+                <div class="multi-target-roster-deck">
+                    <div class="roster-deck-header">
+                        <div class="roster-deck-title">
+                            <span class="pulse-radar-dot"></span>
+                            <span>SIMULTANEOUS DETECTION ROSTER</span>
+                            <span class="roster-cap-tag">[5 CONCURRENT]</span>
+                        </div>
+                        <div class="roster-counts-badge" id="rosterCountsBadge">0 ACTIVE</div>
+                    </div>
+
+                    <div class="roster-table-container">
+                        <table class="cuy-roster-table" id="cuyRosterTable" style="display:none;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 58px;">SLOT</th>
+                                    <th>IDENTITAS</th>
+                                    <th style="width: 100px;">CONFIDENCE</th>
+                                    <th style="width: 78px;">JARAK</th>
+                                    <th style="width: 100px; text-align: center;">STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rosterTableBody">
+                                <!-- Populated dynamically by app.js -->
+                            </tbody>
+                        </table>
+
+                        <div class="roster-empty-state" id="rosterEmptyState">
+                            <div class="radar-scan-icon">
+                                <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#b565d8" stroke-width="1.6">
+                                    <circle cx="12" cy="12" r="9"></circle>
+                                    <path d="M12 3v4M12 17v4M3 12h4M17 12h4"></path>
+                                    <circle cx="12" cy="12" r="3" fill="rgba(199, 125, 255, 0.35)"></circle>
+                                </svg>
+                            </div>
+                            <div class="roster-empty-title">MENUNGGU SUBJEK (1 – 5 ORANG SIMULTAN)</div>
+                            <div class="roster-empty-hint">Berdirilah di depan kamera bersamaan. Sistem akan melacak & menampilkan tabel 5 orang sekaligus secara terstruktur.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACTIVE TARGET CARD (DETAILED BIOMETRICS) -->
                 <div class="target-card-display" id="targetCardDisplay">
+                    <!-- Quick Target Slot Chips -->
+                    <div class="target-slot-chips" id="targetSlotChips" style="display:none;">
+                        <span class="chips-label">INSPECT SLOT:</span>
+                        <div class="chips-row" id="chipsRow"></div>
+                    </div>
+
                     <div class="target-empty-state" id="targetEmptyState">
                         <div class="empty-reticle">
                             <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#9d4edd" stroke-width="1.5">

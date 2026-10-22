@@ -802,6 +802,315 @@ html, body {
     letter-spacing: 0.8px;
 }
 
+/* ===================== SIMULTANEOUS MULTI-TARGET ROSTER DECK ===================== */
+.multi-target-roster-deck {
+    background: rgba(15, 6, 24, 0.75);
+    border-bottom: 1px solid var(--border-amethyst);
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.roster-deck-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.roster-deck-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.4px;
+    color: #ede9fe;
+}
+
+.pulse-radar-dot {
+    width: 8px;
+    height: 8px;
+    background: #c77dff;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #c77dff;
+    animation: radarBlink 1.4s ease-in-out infinite;
+}
+
+@keyframes radarBlink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.75); }
+}
+
+.roster-cap-tag {
+    font-family: var(--font-code);
+    font-size: 10px;
+    color: var(--amethyst-light);
+    font-weight: 600;
+}
+
+.roster-counts-badge {
+    padding: 3px 10px;
+    background: rgba(157, 78, 221, 0.2);
+    border: 1px solid rgba(199, 125, 255, 0.4);
+    border-radius: 12px;
+    font-family: var(--font-code);
+    font-size: 10px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+
+.roster-counts-badge.active {
+    background: rgba(16, 185, 129, 0.25);
+    border-color: rgba(16, 185, 129, 0.6);
+    color: #34d399;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
+}
+
+.roster-table-container {
+    width: 100%;
+    max-height: 230px;
+    overflow-y: auto;
+    border: 1px solid rgba(157, 78, 221, 0.25);
+    border-radius: 8px;
+    background: rgba(8, 3, 14, 0.7);
+}
+
+.roster-table-container::-webkit-scrollbar {
+    width: 5px;
+}
+.roster-table-container::-webkit-scrollbar-thumb {
+    background: rgba(199, 125, 255, 0.35);
+    border-radius: 3px;
+}
+
+.cuy-roster-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-code);
+    font-size: 11px;
+}
+
+.cuy-roster-table thead th {
+    position: sticky;
+    top: 0;
+    background: rgba(20, 8, 32, 0.95);
+    backdrop-filter: blur(8px);
+    color: #a78bfa;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-amethyst);
+    z-index: 2;
+}
+
+.cuy-roster-table tbody tr.roster-row {
+    border-bottom: 1px solid rgba(157, 78, 221, 0.12);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cuy-roster-table tbody tr.roster-row:hover {
+    background: rgba(157, 78, 221, 0.18);
+}
+
+.cuy-roster-table tbody tr.roster-row.active-row {
+    background: rgba(199, 125, 255, 0.22);
+    box-shadow: inset 3px 0 0 #c77dff;
+}
+
+.cuy-roster-table tbody td {
+    padding: 8px 10px;
+    vertical-align: middle;
+}
+
+.slot-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 800;
+    background: rgba(157, 78, 221, 0.25);
+    border: 1px solid rgba(199, 125, 255, 0.4);
+    color: #e0aaff;
+}
+
+.roster-row.verified .slot-badge {
+    background: rgba(16, 185, 129, 0.18);
+    border-color: rgba(16, 185, 129, 0.5);
+    color: #34d399;
+}
+
+.roster-row.unknown .slot-badge {
+    background: rgba(239, 68, 68, 0.18);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #f87171;
+}
+
+.roster-identity-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.roster-name {
+    font-weight: 700;
+    color: #ffffff;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+.roster-tier {
+    font-size: 9px;
+    color: var(--amethyst-light);
+    letter-spacing: 0.8px;
+}
+
+.roster-conf-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.conf-pct {
+    font-weight: 700;
+    color: #ede9fe;
+}
+
+.mini-bar-track {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.mini-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #7b2cbf, #c77dff);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.dist-val {
+    color: #c4b5fd;
+    font-weight: 600;
+}
+
+.roster-status-pill {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: var(--font-display);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+}
+
+.roster-status-pill.verified {
+    background: rgba(16, 185, 129, 0.18);
+    border: 1px solid rgba(16, 185, 129, 0.55);
+    color: #34d399;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
+}
+
+.roster-status-pill.unknown {
+    background: rgba(239, 68, 68, 0.18);
+    border: 1px solid rgba(239, 68, 68, 0.55);
+    color: #f87171;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+}
+
+.roster-empty-state {
+    padding: 24px 16px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.radar-scan-icon {
+    margin-bottom: 4px;
+    animation: pulseIcon 2s ease-in-out infinite;
+}
+
+@keyframes pulseIcon {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.1); opacity: 0.6; }
+}
+
+.roster-empty-title {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    color: #ede9fe;
+}
+
+.roster-empty-hint {
+    font-size: 11px;
+    color: #a78bfa;
+    max-width: 310px;
+    line-height: 1.4;
+}
+
+/* Quick Slot Switcher Chips */
+.target-slot-chips {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid rgba(157, 78, 221, 0.2);
+    overflow-x: auto;
+}
+
+.chips-label {
+    font-family: var(--font-code);
+    font-size: 10px;
+    font-weight: 700;
+    color: #a78bfa;
+    white-space: nowrap;
+}
+
+.chips-row {
+    display: flex;
+    gap: 6px;
+}
+
+.slot-chip-btn {
+    padding: 4px 10px;
+    background: rgba(157, 78, 221, 0.15);
+    border: 1px solid var(--border-amethyst);
+    color: var(--amethyst-light);
+    border-radius: 4px;
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.slot-chip-btn:hover {
+    background: rgba(199, 125, 255, 0.25);
+    color: #ffffff;
+}
+
+.slot-chip-btn.active {
+    background: linear-gradient(135deg, #7b2cbf, #9d4edd);
+    border-color: #c77dff;
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(199, 125, 255, 0.5);
+}
+
 /* Target Display Area */
 .target-card-display {
     padding: 18px;

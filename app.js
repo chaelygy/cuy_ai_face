@@ -40,6 +40,8 @@ let fpsFrames = 0;
 let lastFpsTime = performance.now();
 let audioContext = null;
 let registeredPersons = [];
+let currentDetectedFaces = [];
+let selectedTargetSlot = 0;
 
 // DOM References
 const videoEl = document.getElementById('webcamVideo');
@@ -94,6 +96,15 @@ const registryGrid = document.getElementById('registryGrid');
 const inputRegistrySearch = document.getElementById('inputRegistrySearch');
 const btnSyncRegistry = document.getElementById('btnSyncRegistry');
 const hudClock = document.getElementById('hudClock');
+
+// Multi-Target Roster Deck Elements
+const cuyRosterTable = document.getElementById('cuyRosterTable');
+const rosterTableBody = document.getElementById('rosterTableBody');
+const rosterEmptyState = document.getElementById('rosterEmptyState');
+const rosterCountsBadge = document.getElementById('rosterCountsBadge');
+const telemetryTargetBadge = document.getElementById('telemetryTargetBadge');
+const targetSlotChips = document.getElementById('targetSlotChips');
+const chipsRow = document.getElementById('chipsRow');
 
 // Modal Elements
 const configModal = document.getElementById('configModal');
@@ -453,18 +464,15 @@ function handleRecognitionResults(faces, frameW, frameH) {
 
     if (faces.length === 0) {
         telemetryMatchStatus.textContent = 'SCANNING...';
-        targetEmptyState.style.display = 'flex';
-        targetDetectedState.style.display = 'none';
-        targetCoords.textContent = 'TARGET_COORDS: [X: 000 | Y: 000 | Z: 512D]';
+        renderRosterTable([]);
         return;
     }
 
     const scaleX = overlayCanvas.width / frameW;
     const scaleY = overlayCanvas.height / frameH;
 
-    let primaryFace = faces[0];
-
     faces.forEach((face, idx) => {
+        const slotNum = idx + 1;
         const { x, y, w, h } = face.bbox;
         const sx = x * scaleX;
         const sy = y * scaleY;
@@ -472,12 +480,13 @@ function handleRecognitionResults(faces, frameW, frameH) {
         const sh = h * scaleY;
 
         const isMatch = face.name && face.name !== 'Unknown';
+        const isSelected = (idx === selectedTargetSlot);
 
         // Draw HUD Bracket Box
-        overlayCtx.lineWidth = 2.5;
-        overlayCtx.strokeStyle = isMatch ? '#c77dff' : '#f87171';
-        overlayCtx.shadowColor = isMatch ? 'rgba(199, 125, 255, 0.8)' : 'rgba(239, 68, 68, 0.8)';
-        overlayCtx.shadowBlur = 12;
+        overlayCtx.lineWidth = isSelected ? 3.5 : 2.5;
+        overlayCtx.strokeStyle = isMatch ? (isSelected ? '#e0aaff' : '#c77dff') : '#f87171';
+        overlayCtx.shadowColor = isMatch ? 'rgba(199, 125, 255, 0.9)' : 'rgba(239, 68, 68, 0.9)';
+        overlayCtx.shadowBlur = isSelected ? 18 : 10;
 
         const bracketLen = Math.min(sw, sh) * 0.25;
 
@@ -509,20 +518,155 @@ function handleRecognitionResults(faces, frameW, frameH) {
         overlayCtx.lineTo(sx + sw, sy + sh - bracketLen);
         overlayCtx.stroke();
 
-        // Target Tag Label
-        const labelText = isMatch ? `${face.name.toUpperCase()} (${face.confidence}%)` : `UNKNOWN TARGET [${face.distance}]`;
+        // Numbered Target Label: [#1] NAME (CONF%)
+        const labelText = isMatch 
+            ? `[#${slotNum}] ${face.name.toUpperCase()} (${face.confidence}%)`
+            : `[#${slotNum}] UNKNOWN [${face.distance}]`;
+
         overlayCtx.font = 'bold 13px "Orbitron", monospace';
-        overlayCtx.fillStyle = isMatch ? '#c77dff' : '#f87171';
+        overlayCtx.fillStyle = isMatch ? (isSelected ? '#ffffff' : '#c77dff') : '#f87171';
         overlayCtx.shadowBlur = 8;
         overlayCtx.fillText(labelText, sx + 4, sy - 8);
     });
 
-    // Update Telemetry Panel with Primary Target
-    updateTargetPanel(primaryFace);
-    targetCoords.textContent = `TARGET_COORDS: [X: ${primaryFace.bbox.x} | Y: ${primaryFace.bbox.y} | W: ${primaryFace.bbox.w}]`;
+    // Render Simultaneous Multi-Target Table & Detailed Inspector
+    renderRosterTable(faces);
 }
 
-function updateTargetPanel(face) {
+/**
+ * Merender tabel simultan untuk 1 - 5+ orang terdeteksi secara rapi
+ */
+function renderRosterTable(faces) {
+    currentDetectedFaces = faces || [];
+
+    if (!faces || faces.length === 0) {
+        if (cuyRosterTable) cuyRosterTable.style.display = 'none';
+        if (rosterEmptyState) rosterEmptyState.style.display = 'flex';
+        if (rosterCountsBadge) {
+            rosterCountsBadge.textContent = '0 ACTIVE';
+            rosterCountsBadge.classList.remove('active');
+        }
+        if (telemetryTargetBadge) telemetryTargetBadge.textContent = '0 TARGETS';
+        if (targetSlotChips) targetSlotChips.style.display = 'none';
+        targetEmptyState.style.display = 'flex';
+        targetDetectedState.style.display = 'none';
+        targetCoords.textContent = 'TARGET_COORDS: [X: 000 | Y: 000 | Z: 512D]';
+        return;
+    }
+
+    if (cuyRosterTable) cuyRosterTable.style.display = 'table';
+    if (rosterEmptyState) rosterEmptyState.style.display = 'none';
+
+    // Hitung verified vs unknown
+    const verifiedCount = faces.filter(f => f.name && f.name !== 'Unknown').length;
+    const unknownCount = faces.length - verifiedCount;
+
+    if (rosterCountsBadge) {
+        rosterCountsBadge.textContent = `${faces.length} TARGET [${verifiedCount} OK]`;
+        rosterCountsBadge.classList.add('active');
+    }
+    if (telemetryTargetBadge) {
+        telemetryTargetBadge.textContent = `${faces.length} TARGETS [${verifiedCount} OK]`;
+    }
+
+    if (selectedTargetSlot >= faces.length) {
+        selectedTargetSlot = 0;
+    }
+
+    // Bangun HTML Baris Tabel Roster
+    let tableHtml = '';
+    faces.forEach((face, idx) => {
+        const isMatch = face.name && face.name !== 'Unknown';
+        const isSelected = (idx === selectedTargetSlot);
+        const slotNum = idx + 1;
+        const displayName = isMatch ? escapeHtml(face.name.toUpperCase()) : 'UNKNOWN SUBJECT';
+        const confPct = isMatch ? `${face.confidence}%` : '0.0%';
+        const confBar = isMatch ? face.confidence : 10;
+        const distVal = face.distance !== undefined ? face.distance.toFixed(4) : '-';
+        const statusClass = isMatch ? 'verified' : 'unknown';
+        const statusText = isMatch ? 'VERIFIED' : 'UNAUTHORIZED';
+        const tierText = isMatch ? 'TIER-1 CLEARANCE' : 'RESTRICTED';
+
+        tableHtml += `
+            <tr class="roster-row ${statusClass} ${isSelected ? 'active-row' : ''}" data-slot="${idx}">
+                <td>
+                    <span class="slot-badge">[#${slotNum}]</span>
+                </td>
+                <td>
+                    <div class="roster-identity-cell">
+                        <span class="roster-name">${displayName}</span>
+                        <span class="roster-tier">${tierText}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="roster-conf-cell">
+                        <span class="conf-pct">${confPct}</span>
+                        <div class="mini-bar-track">
+                            <div class="mini-bar-fill" style="width: ${confBar}%;"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="dist-val">${distVal}</span>
+                </td>
+                <td style="text-align: center;">
+                    <span class="roster-status-pill ${statusClass}">${statusText}</span>
+                </td>
+            </tr>
+        `;
+    });
+    rosterTableBody.innerHTML = tableHtml;
+
+    // Klik baris tabel untuk memilih target inspector
+    rosterTableBody.querySelectorAll('.roster-row').forEach(row => {
+        row.addEventListener('click', () => {
+            const slot = parseInt(row.getAttribute('data-slot'), 10);
+            selectTargetSlot(slot);
+        });
+    });
+
+    // Render Quick Slot Chips
+    if (faces.length > 1) {
+        if (targetSlotChips) targetSlotChips.style.display = 'flex';
+        let chipsHtml = '';
+        faces.forEach((face, idx) => {
+            const isMatch = face.name && face.name !== 'Unknown';
+            const shortName = isMatch ? face.name.split(' ')[0] : 'UNKNOWN';
+            const isSelected = (idx === selectedTargetSlot);
+            chipsHtml += `
+                <button type="button" class="slot-chip-btn ${isSelected ? 'active' : ''}" data-slot="${idx}">
+                    #${idx + 1} ${escapeHtml(shortName)}
+                </button>
+            `;
+        });
+        chipsRow.innerHTML = chipsHtml;
+        chipsRow.querySelectorAll('.slot-chip-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const slot = parseInt(btn.getAttribute('data-slot'), 10);
+                selectTargetSlot(slot);
+            });
+        });
+    } else {
+        if (targetSlotChips) targetSlotChips.style.display = 'none';
+    }
+
+    // Update target panel dengan face yang dipilih
+    const activeFace = faces[selectedTargetSlot] || faces[0];
+    updateTargetPanel(activeFace, selectedTargetSlot + 1);
+    if (activeFace && activeFace.bbox) {
+        targetCoords.textContent = `TARGET_COORDS [#${selectedTargetSlot + 1}]: [X: ${activeFace.bbox.x} | Y: ${activeFace.bbox.y} | W: ${activeFace.bbox.w}]`;
+    }
+}
+
+function selectTargetSlot(slot) {
+    selectedTargetSlot = slot;
+    if (currentDetectedFaces && currentDetectedFaces.length > 0) {
+        renderRosterTable(currentDetectedFaces);
+    }
+}
+
+function updateTargetPanel(face, slotNum = 1) {
+    if (!face) return;
     targetEmptyState.style.display = 'none';
     targetDetectedState.style.display = 'flex';
 
@@ -531,21 +675,21 @@ function updateTargetPanel(face) {
     if (isMatch) {
         playSciFiChime(true);
         telemetryMatchStatus.textContent = 'MATCH VERIFIED';
-        targetBadgePill.textContent = 'VERIFIED IDENTITY';
+        targetBadgePill.textContent = `VERIFIED TARGET [SLOT #${slotNum}]`;
         targetBadgePill.className = 'target-badge-pill';
         targetPersonName.textContent = face.name.toUpperCase();
         targetPersonName.style.textShadow = '0 0 16px rgba(199, 125, 255, 0.8), 0 0 32px rgba(157, 78, 221, 0.5)';
         
         targetConfidenceScore.textContent = `${face.confidence}%`;
         targetConfidenceFill.style.width = `${face.confidence}%`;
-        targetDistanceVal.textContent = face.distance ? face.distance.toFixed(4) : '0.1240';
+        targetDistanceVal.textContent = face.distance ? face.distance.toFixed(4) : '0.0420';
         targetSimilarityVal.textContent = `${face.confidence}%`;
         targetSecurityTier.textContent = 'TIER-1 ACCESS (CLEARANCE GRANTED)';
         targetSecurityTier.className = 'quad-v text-emerald';
     } else {
         playSciFiChime(false);
         telemetryMatchStatus.textContent = 'UNAUTHORIZED TARGET';
-        targetBadgePill.textContent = 'UNAUTHORIZED / UNKNOWN';
+        targetBadgePill.textContent = `UNAUTHORIZED [SLOT #${slotNum}]`;
         targetBadgePill.className = 'target-badge-pill unknown';
         targetPersonName.textContent = 'UNKNOWN IDENTITY';
         targetPersonName.style.textShadow = '0 0 16px rgba(239, 68, 68, 0.8)';
@@ -621,15 +765,15 @@ function renderUploadOverlays(faces) {
 
     if (faces.length === 0) {
         telemetryMatchStatus.textContent = 'NO FACE DETECTED';
-        targetEmptyState.style.display = 'flex';
-        targetDetectedState.style.display = 'none';
+        renderRosterTable([]);
         return;
     }
 
-    const primary = faces[0];
-    updateTargetPanel(primary);
+    // Render roster table with all detected faces
+    renderRosterTable(faces);
 
-    faces.forEach(face => {
+    faces.forEach((face, idx) => {
+        const slotNum = idx + 1;
         const { x, y, w, h } = face.bbox;
         const isMatch = face.name && face.name !== 'Unknown';
 
@@ -640,7 +784,7 @@ function renderUploadOverlays(faces) {
 
         uploadOverlayCtx.strokeRect(x, y, w, h);
 
-        const label = isMatch ? `${face.name.toUpperCase()} (${face.confidence}%)` : 'UNKNOWN';
+        const label = isMatch ? `[#${slotNum}] ${face.name.toUpperCase()} (${face.confidence}%)` : `[#${slotNum}] UNKNOWN`;
         uploadOverlayCtx.font = 'bold 15px "Orbitron", monospace';
         uploadOverlayCtx.fillStyle = isMatch ? '#c77dff' : '#f87171';
         uploadOverlayCtx.fillText(label, x + 4, y - 8);
