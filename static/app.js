@@ -5,7 +5,7 @@
  * =====================================================================
  */
 
-const CLOUD_BACKEND_URL = 'https://township-tobacco-riding-grain.trycloudflare.com';
+const CLOUD_BACKEND_URL = 'https://never-starting-that-lady.trycloudflare.com';
 
 const isFileProtocol = window.location.protocol === 'file:';
 const isLocal = Boolean(
@@ -27,8 +27,8 @@ if (!isLocal) {
 
 const customApi = localStorage.getItem('cuy_face_backend_url');
 let API_BASE = (customApi ? customApi.replace(/\/+$/, '') : defaultApi);
-const WEBCAM_INTERVAL_MS = 1200;
-const JPEG_QUALITY = 0.86;
+const WEBCAM_INTERVAL_MS = 650;
+const JPEG_QUALITY = 0.75;
 
 // State Variables
 let isWebcamRunning = false;
@@ -409,12 +409,20 @@ async function captureAndRecognizeFrame() {
     const startTime = performance.now();
 
     try {
-        // Offscreen canvas for frame extraction
+        // Downscale frame webcam untuk transmisi super cepat & responsif (mengurangi latensi jaringan & CPU)
+        const maxDim = 480;
+        let targetW = videoEl.videoWidth || 640;
+        let targetH = videoEl.videoHeight || 480;
+        if (targetW > maxDim) {
+            targetH = Math.round((targetH * maxDim) / targetW);
+            targetW = maxDim;
+        }
+
         const offCanvas = document.createElement('canvas');
-        offCanvas.width = videoEl.videoWidth || 640;
-        offCanvas.height = videoEl.videoHeight || 480;
+        offCanvas.width = targetW;
+        offCanvas.height = targetH;
         const offCtx = offCanvas.getContext('2d');
-        offCtx.drawImage(videoEl, 0, 0, offCanvas.width, offCanvas.height);
+        offCtx.drawImage(videoEl, 0, 0, targetW, targetH);
 
         const base64Data = offCanvas.toDataURL('image/jpeg', JPEG_QUALITY);
 
