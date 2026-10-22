@@ -311,16 +311,18 @@
             <div class="modal-body">
                 <label class="modal-label" for="cfgApiBase">Backend API Endpoint:</label>
                 <input type="text" class="modal-input" id="cfgApiBase" placeholder="http://localhost:5001 atau https://xxx.trycloudflare.com">
-                <p class="modal-hint">Masukkan URL Cloudflare Tunnel jika ingin mengakses website ini dari HP atau jaringan luar.</p>
+                <p class="modal-hint" id="cfgStatusHint">Pilih preset atau masukkan URL Backend CUY AI.</p>
                 
                 <div class="modal-presets">
-                    <button class="preset-btn" id="btnPresetLocal">Use Localhost:5001</button>
-                    <button class="preset-btn" id="btnPresetTunnel">Use Cloudflare Tunnel</button>
+                    <button type="button" class="preset-btn" id="btnPresetLocal">Localhost:5001</button>
+                    <button type="button" class="preset-btn" id="btnPresetLocal5000">Port 5000</button>
+                    <button type="button" class="preset-btn" id="btnPresetTunnel">Tunnel URL</button>
+                    <button type="button" class="preset-btn" id="btnAutoDetect" style="border-color: #c77dff; color: #e0aaff; font-weight: 600;">⚡ Auto Detect</button>
                 </div>
             </div>
             <div class="modal-foot">
-                <button class="action-btn" id="btnResetConfig">Reset</button>
-                <button class="primary-btn" id="btnSaveConfig">Save & Reconnect</button>
+                <button type="button" class="action-btn" id="btnResetConfig">Reset</button>
+                <button type="button" class="primary-btn" id="btnSaveConfig">Save & Reconnect</button>
             </div>
         </div>
     </div>

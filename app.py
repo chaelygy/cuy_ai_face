@@ -234,33 +234,59 @@ def process_image(img_array):
     return results
 
 
-# ===================== ROUTES =====================
+# ===================== MIDDLEWARE & ROUTES =====================
+
+@app.after_request
+def apply_cors_and_cache_headers(response):
+    """Pastikan seluruh response memiliki header CORS dan mencegah browser cache usang."""
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS, PUT, DELETE"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+    
+    # Nonaktifkan caching untuk data dinamis dan skrip agar sinkronisasi endpoint selalu fresh
+    if request.path.startswith("/api/") or request.path.endswith(".js") or request.path.endswith(".html") or request.path == "/":
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
 
 @app.route("/")
 def index():
-    """Serve halaman utama frontend."""
-    return send_from_directory(STATIC_DIR, "index.html")
+    """Serve halaman utama frontend dari static atau root."""
+    if os.path.exists(os.path.join(STATIC_DIR, "index.html")):
+        return send_from_directory(STATIC_DIR, "index.html")
+    return send_from_directory(BASE_DIR, "index.html")
 
 
 @app.route("/<path:filename>")
 def serve_static(filename):
-    """Serve asset statis (style.css, app.js, gambar, dll)."""
-    return send_from_directory(STATIC_DIR, filename)
+    """Serve asset statis (style.css, app.js, gambar, dll) dari static atau root."""
+    if os.path.exists(os.path.join(STATIC_DIR, filename)):
+        return send_from_directory(STATIC_DIR, filename)
+    if os.path.exists(os.path.join(BASE_DIR, filename)):
+        return send_from_directory(BASE_DIR, filename)
+    return jsonify({"error": f"File {filename} not found"}), 404
 
 
-@app.route("/api/health", methods=["GET"])
+@app.route("/api/health", methods=["GET", "OPTIONS"])
 def health():
-    """Health check endpoint ringkas."""
+    """Health check endpoint ringkas untuk auto-discovery."""
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
     return jsonify({
         "status": "healthy",
         "system": "CUY AI",
+        "model_loaded": model_loaded,
         "timestamp": time.time()
     })
 
 
-@app.route("/api/status", methods=["GET"])
+@app.route("/api/status", methods=["GET", "OPTIONS"])
 def status():
     """Informasi status server, model, database identitas, & parameter ambang batas."""
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
     ensure_latest_data()
     person_list = list(face_data["person_names"]) if face_data else []
     return jsonify({
@@ -277,9 +303,11 @@ def status():
     })
 
 
-@app.route("/api/persons", methods=["GET"])
+@app.route("/api/persons", methods=["GET", "OPTIONS"])
 def get_persons():
     """Daftar detail identitas yang terdaftar."""
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
     ensure_latest_data()
     if face_data is None:
         return jsonify({"persons": [], "total": 0})
@@ -299,12 +327,15 @@ def get_persons():
     })
 
 
-@app.route("/api/recognize", methods=["POST"])
+@app.route("/api/recognize", methods=["POST", "OPTIONS"])
 def recognize():
     """
     Menerima frame webcam (base64 JSON) atau upload file gambar,
     mendeteksi wajah, dan mencocokkan identitas secara real-time.
     """
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
+
     start_time = time.time()
     ensure_latest_data()
 
