@@ -5,7 +5,7 @@
  * =====================================================================
  */
 
-const CLOUD_BACKEND_URL = 'https://mentioned-legend-directories-retrieved.trycloudflare.com';
+const CLOUD_BACKEND_URL = 'https://township-tobacco-riding-grain.trycloudflare.com';
 
 const isFileProtocol = window.location.protocol === 'file:';
 const isLocal = Boolean(
