@@ -5,7 +5,7 @@
  * =====================================================================
  */
 
-const CLOUD_BACKEND_URL = 'https://heel-charms-recovered-crimes.trycloudflare.com';
+const CLOUD_BACKEND_URL = 'https://mentioned-legend-directories-retrieved.trycloudflare.com';
 
 const isFileProtocol = window.location.protocol === 'file:';
 const isLocal = Boolean(
@@ -15,17 +15,18 @@ const isLocal = Boolean(
     isFileProtocol
 );
 
+// Tentukan default API endpoint
 let defaultApi = 'http://localhost:5001';
 if (!isLocal) {
     defaultApi = CLOUD_BACKEND_URL;
-} else if (!isFileProtocol && window.location.origin && window.location.origin !== 'null') {
+} else if (!isFileProtocol && window.location.origin && window.location.origin !== 'null' && (window.location.port === '5001' || window.location.port === '5000')) {
     defaultApi = window.location.origin;
 } else {
     defaultApi = 'http://localhost:5001';
 }
 
 const customApi = localStorage.getItem('cuy_face_backend_url');
-let API_BASE = (customApi ? customApi.replace(/\/$/, '') : defaultApi);
+let API_BASE = (customApi ? customApi.replace(/\/+$/, '') : defaultApi);
 const WEBCAM_INTERVAL_MS = 1200;
 const JPEG_QUALITY = 0.86;
 
@@ -148,22 +149,113 @@ setInterval(updateClock, 1000);
 updateClock();
 
 // ===================== SERVER STATUS & REGISTRY =====================
-async function fetchServerStatus() {
-    try {
-        const resp = await fetch(`${API_BASE}/api/status`);
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        const data = await resp.json();
 
+/**
+ * Melakukan ping cepat ke target URL dengan timeout ketat 2 detik
+ */
+async function pingBackend(url) {
+    if (!url) return null;
+    try {
+        const clean = url.replace(/\/+$/, '');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const resp = await fetch(`${clean}/api/status`, {
+            method: 'GET',
+            signal: controller.signal,
+            cache: 'no-store'
+        });
+        clearTimeout(timeoutId);
+        if (resp.ok) {
+            const data = await resp.json();
+            if (data && (data.status === 'online' || data.model_loaded !== undefined)) {
+                return { url: clean, data };
+            }
+        }
+    } catch (_) {}
+    return null;
+}
+
+let isAutoDiscovering = false;
+/**
+ * Memindai port dan endpoint yang berpotensi aktif untuk auto-reconnect
+ */
+async function autoDiscoverBackend() {
+    if (isAutoDiscovering) return null;
+    isAutoDiscovering = true;
+    try {
+        const candidateList = [];
+
+        // 1. Origin browser aktif jika port 5001 atau 5000
+        if (!isFileProtocol && window.location.origin && window.location.origin !== 'null') {
+            if (window.location.port === '5001' || window.location.port === '5000') {
+                candidateList.push(window.location.origin);
+            }
+        }
+
+        // 2. Localhost 5001 (port resmi CUY AI)
+        candidateList.push('http://localhost:5001');
+        candidateList.push('http://127.0.0.1:5001');
+
+        // 3. Cloudflare Tunnel jika dikonfigurasi
+        if (typeof CLOUD_BACKEND_URL === 'string' && CLOUD_BACKEND_URL && !candidateList.includes(CLOUD_BACKEND_URL)) {
+            candidateList.push(CLOUD_BACKEND_URL);
+        }
+
+        // 4. Fallback port 5000 jika instance berjalan di port 5000
+        candidateList.push('http://localhost:5000');
+        candidateList.push('http://127.0.0.1:5000');
+
+        for (const target of candidateList) {
+            const res = await pingBackend(target);
+            if (res) return res;
+        }
+        return null;
+    } finally {
+        isAutoDiscovering = false;
+    }
+}
+
+async function fetchServerStatus() {
+    // 1. Coba endpoint yang saat ini aktif
+    let res = await pingBackend(API_BASE);
+
+    // 2. Jika gagal terhubung, lakukan auto-discovery ke port kandidat
+    if (!res) {
+        serverStateLabel.textContent = 'AUTOCONNECTING...';
+        btnServerStatus.className = 'server-status-pill offline';
+
+        const discovered = await autoDiscoverBackend();
+        if (discovered) {
+            res = discovered;
+            API_BASE = discovered.url;
+            console.log('[CUY AI] Backend terdeteksi & terhubung ke:', API_BASE);
+            localStorage.setItem('cuy_face_backend_url', API_BASE);
+            if (cfgApiBase) cfgApiBase.value = API_BASE;
+        }
+    }
+
+    if (res) {
+        const data = res.data;
         serverStateLabel.textContent = `ONLINE [${data.total_persons || 24} ID]`;
         btnServerStatus.className = 'server-status-pill online';
         totalPersonsBadge.textContent = `${data.total_persons || 24} IDS`;
+
+        if (cutoffText && data.threshold !== undefined) {
+            cutoffText.textContent = Number(data.threshold).toFixed(4);
+        }
+        if (modelText && data.model_name) {
+            modelText.textContent = data.model_name;
+        }
+        if (detectorText && data.detector) {
+            detectorText.textContent = data.detector;
+        }
 
         if (data.persons && Array.isArray(data.persons)) {
             registeredPersons = data.persons;
             renderRegistry(registeredPersons);
         }
-    } catch (e) {
-        serverStateLabel.textContent = 'RECONNECTING...';
+    } else {
+        serverStateLabel.textContent = 'OFFLINE (KLIK SETUP)';
         btnServerStatus.className = 'server-status-pill offline';
     }
 }
@@ -647,11 +739,41 @@ btnCloseConfig.addEventListener('click', () => {
 
 btnPresetLocal.addEventListener('click', () => {
     cfgApiBase.value = 'http://localhost:5001';
+    const hint = document.getElementById('cfgStatusHint');
+    if (hint) hint.textContent = 'Preset Localhost:5001 dipilih. Klik Save & Reconnect.';
 });
+
+const btnPresetLocal5000 = document.getElementById('btnPresetLocal5000');
+if (btnPresetLocal5000) {
+    btnPresetLocal5000.addEventListener('click', () => {
+        cfgApiBase.value = 'http://localhost:5000';
+        const hint = document.getElementById('cfgStatusHint');
+        if (hint) hint.textContent = 'Preset Port 5000 dipilih. Klik Save & Reconnect.';
+    });
+}
 
 btnPresetTunnel.addEventListener('click', () => {
     cfgApiBase.value = CLOUD_BACKEND_URL;
+    const hint = document.getElementById('cfgStatusHint');
+    if (hint) hint.textContent = 'Preset Cloudflare Tunnel dipilih. Klik Save & Reconnect.';
 });
+
+const btnAutoDetect = document.getElementById('btnAutoDetect');
+if (btnAutoDetect) {
+    btnAutoDetect.addEventListener('click', async () => {
+        const hint = document.getElementById('cfgStatusHint');
+        if (hint) hint.textContent = 'Memindai server backend yang aktif...';
+        btnAutoDetect.textContent = '⏳ Scanning...';
+        const found = await autoDiscoverBackend();
+        btnAutoDetect.textContent = '⚡ Auto Detect';
+        if (found) {
+            cfgApiBase.value = found.url;
+            if (hint) hint.textContent = `[OK] Server aktif ditemukan di ${found.url}! Klik Save & Reconnect.`;
+        } else {
+            if (hint) hint.textContent = '[INFO] Tidak ada server yang merespon. Pastikan start_server.bat sudah dijalankan.';
+        }
+    });
+}
 
 btnResetConfig.addEventListener('click', () => {
     localStorage.removeItem('cuy_face_backend_url');
@@ -662,7 +784,7 @@ btnResetConfig.addEventListener('click', () => {
 });
 
 btnSaveConfig.addEventListener('click', () => {
-    const val = (cfgApiBase.value || '').trim().replace(/\/$/, '');
+    const val = (cfgApiBase.value || '').trim().replace(/\/+$/, '');
     if (val) {
         localStorage.setItem('cuy_face_backend_url', val);
         API_BASE = val;
