@@ -41,7 +41,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ENCODING_FILE = os.path.join(BASE_DIR, "face_encodings.pkl")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 MODEL_NAME = "Facenet512"
-DETECTOR_BACKEND = "retinaface"
+# Gunakan opencv sebagai default detektor real-time ultra cepat (90ms vs 8000ms pada CPU)
+DETECTOR_BACKEND = os.environ.get("DETECTOR_BACKEND", "opencv")
 
 # Fallback threshold jika tidak tertera di pickle
 DEFAULT_THRESHOLD = 0.42
@@ -108,17 +109,17 @@ def load_face_data():
         
         # Pre-warm model DeepFace
         if not model_loaded:
-            print("[INFO] Pre-warming model DeepFace Facenet512...")
+            print(f"[INFO] Pre-warming model DeepFace Facenet512 ({DETECTOR_BACKEND})...")
             try:
                 dummy = np.zeros((160, 160, 3), dtype=np.uint8)
                 dummy[50:110, 50:110] = 128
                 DeepFace.represent(
                     img_path=dummy,
                     model_name=MODEL_NAME,
-                    detector_backend="skip",
+                    detector_backend=DETECTOR_BACKEND,
                     enforce_detection=False
                 )
-                print("[INFO] Model DeepFace Facenet512 siap!")
+                print(f"[INFO] Model DeepFace Facenet512 ({DETECTOR_BACKEND}) siap!")
             except Exception as e:
                 print(f"[WARNING] Pre-warming: {e}")
         
@@ -188,18 +189,31 @@ def recognize_face_embedding(embedding):
     return best_name, confidence, round(float(best_distance), 4)
 
 
-def process_image(img_array):
+def process_image(img_array, detector=None):
     """
-    Memproses gambar: deteksi wajah via RetinaFace dan kenali setiap wajah.
-    Returns: list of dict dengan info setiap wajah terdeteksi.
+    Memproses gambar: deteksi wajah dan kenali setiap wajah secara cepat dan akurat.
+    Menggunakan adaptive downscaling untuk efisiensi CPU dan mengembalikan koordinat asli.
     """
     results = []
+    backend = detector if detector else DETECTOR_BACKEND
     
     try:
+        orig_h, orig_w = img_array.shape[:2]
+        
+        # Adaptive downscale jika frame terlalu besar (> 540px) untuk kecepatan maksimal
+        max_dim = 540
+        scale = 1.0
+        proc_img = img_array
+        if orig_w > max_dim or orig_h > max_dim:
+            scale = max_dim / float(max(orig_w, orig_h))
+            new_w = max(1, int(orig_w * scale))
+            new_h = max(1, int(orig_h * scale))
+            proc_img = cv2.resize(img_array, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
         representations = DeepFace.represent(
-            img_path=img_array,
+            img_path=proc_img,
             model_name=MODEL_NAME,
-            detector_backend=DETECTOR_BACKEND,
+            detector_backend=backend,
             enforce_detection=False,
             align=True
         )
@@ -212,6 +226,13 @@ def process_image(img_array):
             y = facial_area.get("y", 0)
             w = facial_area.get("w", 0)
             h = facial_area.get("h", 0)
+
+            # Kembalikan koordinat bounding box ke skala resolusi asli
+            if scale != 1.0:
+                x = int(x / scale)
+                y = int(y / scale)
+                w = int(w / scale)
+                h = int(h / scale)
             
             name, confidence, distance = recognize_face_embedding(embedding)
             
@@ -380,12 +401,17 @@ def recognize():
             "faces": []
         }), 400
 
-    faces = process_image(img_array)
+    req_detector = request.args.get("detector")
+    if not req_detector and request.is_json:
+        req_detector = request.get_json().get("detector")
+
+    faces = process_image(img_array, detector=req_detector)
     elapsed = time.time() - start_time
 
     return jsonify({
         "faces": faces,
         "count": len(faces),
+        "detector": req_detector if req_detector else DETECTOR_BACKEND,
         "processing_time_ms": round(elapsed * 1000, 1),
         "system": "CUY AI"
     })
